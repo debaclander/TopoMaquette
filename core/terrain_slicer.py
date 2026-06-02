@@ -892,7 +892,13 @@ def _safe_polygonal_union(geoms, area_tolerance=0.0):
         return Polygon()
     if len(parts) == 1:
         return parts[0]
-    return unary_union(parts)
+    try:
+        return unary_union(parts)
+    except TypeError:
+        merged = parts[0]
+        for part in parts[1:]:
+            merged = merged.union(part)
+        return merged
 
 
 def _simplify_contact_line(geom, glue_margin):
