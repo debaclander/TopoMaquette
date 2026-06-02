@@ -857,9 +857,7 @@ def _is_closed_line(line):
 
 def _polygonal_geometry(geom):
     parts = _polygon_parts(geom)
-    if not parts:
-        return Polygon()
-    return unary_union(parts)
+    return _safe_polygonal_union(parts)
 
 
 def _polygon_parts(geom):
@@ -875,6 +873,26 @@ def _polygon_parts(geom):
             parts.extend(_polygon_parts(child))
         return parts
     return []
+
+
+def _safe_polygonal_union(geoms, area_tolerance=0.0):
+    parts = []
+    for geom in geoms or []:
+        for part in _polygon_parts(geom):
+            if part.is_empty or part.area <= area_tolerance:
+                continue
+            if not part.is_valid:
+                part = part.buffer(0)
+            for cleaned_part in _polygon_parts(part):
+                if cleaned_part.is_empty or cleaned_part.area <= area_tolerance:
+                    continue
+                parts.append(cleaned_part)
+
+    if not parts:
+        return Polygon()
+    if len(parts) == 1:
+        return parts[0]
+    return unary_union(parts)
 
 
 def _simplify_contact_line(geom, glue_margin):
@@ -1000,8 +1018,9 @@ def _build_topographic_cells(contours, topology_tree, boundary_geom, min_z, area
         topology_tree.nodes[node]["data"]["geometry"]
         for node in top_nodes
     ]
-    if top_geoms:
-        outside_geom = boundary_geom.difference(unary_union(top_geoms))
+    top_union = _safe_polygonal_union(top_geoms, area_tolerance)
+    if not top_union.is_empty:
+        outside_geom = boundary_geom.difference(top_union)
     else:
         outside_geom = boundary_geom
 
@@ -1023,8 +1042,9 @@ def _build_topographic_cells(contours, topology_tree, boundary_geom, min_z, area
             for child in children
         ]
         geom = contour["geometry"].intersection(boundary_geom)
-        if child_geoms:
-            geom = geom.difference(unary_union(child_geoms))
+        child_union = _safe_polygonal_union(child_geoms, area_tolerance)
+        if not child_union.is_empty:
+            geom = geom.difference(child_union)
         geom = _clean_layer_geometry(geom, area_tolerance)
         if geom.is_empty or geom.area <= area_tolerance:
             continue
@@ -1076,9 +1096,10 @@ def _geometry_above_level(cells, level, boundary_geom):
         for cell in cells
         if cell["elevation"] >= level - 1e-9
     ]
-    if not geoms:
+    merged = _safe_polygonal_union(geoms)
+    if merged.is_empty:
         return Polygon()
-    return unary_union(geoms).intersection(boundary_geom)
+    return merged.intersection(boundary_geom)
 
 
 def _geometries_equivalent(geom_a, geom_b, area_tolerance):
@@ -1142,7 +1163,7 @@ def _clean_layer_geometry(geom, area_tolerance):
                 polygon_parts.extend(cleaned.geoms)
         if not polygon_parts:
             return Polygon()
-        return unary_union(polygon_parts)
+        return _safe_polygonal_union(polygon_parts, area_tolerance)
 
     if geom.geom_type != "MultiPolygon":
         return Polygon()
@@ -1159,7 +1180,7 @@ def _clean_layer_geometry(geom, area_tolerance):
     if len(parts) == 1:
         return parts[0]
 
-    return unary_union(parts)
+    return _safe_polygonal_union(parts, area_tolerance)
 
 
 def _clean_polygon_geometry(geom, area_tolerance):
