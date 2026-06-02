@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Streamlit / local config
+.streamlit/secrets.toml
+streamlit-start.*.log
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local outputs / generated artifacts
+outputs/
+output/
+exports/
+generated/
+screenshots/
+ErrorReports/
+folha_corte_*.dxf
+folha_corte_*.svg
+folhas_corte_*.zip
+folhas_corte_todas.dxf
+folhas_corte_todas.svg
+
+# Local scratch/debug scripts
+/analyze_topo.py
+/debug.py
+/plot_debug.py
+
+# CAD temporary and backup files
+*.bak
+*.dwl
+*.dwl2
+*.tmp
+*.temp
+~$*
+
+# Large local CAD working files in the project root.
+# Keep curated examples under examples/ tracked.
+/TOPO*.dxf
+/TOPO*.dwg
+/test_topography.dxf

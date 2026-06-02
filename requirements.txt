@@ -1,0 +1,6 @@
+streamlit==1.34.0
+ezdxf==1.1.4
+shapely==2.0.4
+plotly==5.22.0
+rectpack==0.2.2
+networkx==3.3
