@@ -82,6 +82,12 @@ Instale as dependencias:
 pip install -r requirements.txt
 ```
 
+## App Online
+
+A aplicacao esta disponivel em:
+
+https://topomaquette.streamlit.app/
+
 ## Como Executar
 
 Execute a aplicacao com Streamlit:
